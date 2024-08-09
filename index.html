@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haris Nazir</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+        #container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        #content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+        h1 {
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 0.5em;
+            letter-spacing: -0.02em;
+        }
+        .links {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .link {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 200px;
+        }
+        .link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="content">
+        <h1>Haris Nazir</h1>
+        <div class="links">
+            <a href="#" class="link" data-color="#007aff">LinkedIn</a>
+            <a href="#" class="link" data-color="#ff2d55">Instagram</a>
+            <a href="#" class="link" data-color="#5856d6">TikTok</a>
+            <a href="#" class="link" data-color="#5856d6">GitHub</a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, particles;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            // Create particle system
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCnt = 5000;
+            const posArray = new Float32Array(particlesCnt * 3);
+            
+            for(let i = 0; i < particlesCnt * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 5;
+            }
+            
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.005,
+                color: 0xffffff
+            });
+            
+            particles = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particles);
+
+            camera.position.z = 3;
+
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            // Add directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            animate();
+            setupLinkInteractions();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.x += 0.0001;
+            particles.rotation.y += 0.0001;
+            renderer.render(scene, camera);
+        }
+
+        function setupLinkInteractions() {
+            const links = document.querySelectorAll('.link');
+            links.forEach(link => {
+                link.addEventListener('mouseover', () => {
+                    const color = new THREE.Color(link.getAttribute('data-color'));
+                    gsap.to(particles.material.color, {
+                        r: color.r,
+                        g: color.g,
+                        b: color.b,
+                        duration: 0.5
+                    });
+                });
+                link.addEventListener('mouseout', () => {
+                    gsap.to(particles.material.color, {
+                        r: 1,
+                        g: 1,
+                        b: 1,
+                        duration: 0.5
+                    });
+                });
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const color = new THREE.Color(link.getAttribute('data-color'));
+                    gsap.to(particles.material.color, {
+                        r: color.r,
+                        g: color.g,
+                        b: color.b,
+                        duration: 0.5
+                    });
+                    gsap.to(camera.position, {
+                        z: 2,
+                        duration: 1,
+                        ease: "power2.inOut",
+                        onComplete: () => {
+                            window.location = link.href;
+                        }
+                    });
+                });
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+</body>
+</html>
